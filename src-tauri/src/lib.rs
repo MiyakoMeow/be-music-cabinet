@@ -1,4 +1,5 @@
 // src-tauri/src/main.rs
+mod bms_scan;
 
 use sha2::{Digest, Sha256};
 #[allow(unused_imports)]
