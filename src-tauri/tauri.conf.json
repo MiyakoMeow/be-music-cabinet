@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "be-music-stack",
+  "productName": "be-music-cabinet",
   "version": "0.1.0",
-  "identifier": "bms.be-music-stack.app",
+  "identifier": "bms.be-music-cabinet.app",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:61420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "be-music-stack",
+        "title": "be-music-cabinet",
         "width": 800,
         "height": 600
       }

@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    be_music_stack_lib::run()
+    be_music_cabinet_lib::run()
 }
