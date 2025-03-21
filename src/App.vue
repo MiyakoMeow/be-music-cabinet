@@ -1,5 +1,5 @@
 <template>
-  <!-- 主容器，处理拖放事件 -->
+  <!-- 主容器添加overflow-hidden防止窗口滚动 -->
   <div 
     class="container"
     @dragover.prevent="onDragover"
@@ -8,7 +8,6 @@
     <!-- 上半部分：操作菜单 -->
     <div class="menu-bar">
       <div class="left-actions">
-        <!-- 操作按钮 -->
         <button @click="addDirectory">
           <Icon icon="mdi:folder-plus" /> 添加目录
         </button>
@@ -19,16 +18,23 @@
           <Icon icon="mdi:trash-can" /> 删除
         </button>
       </div>
-      
-      <!-- 目录选择 -->
+
+      <!-- 添加默认提示选项 -->
       <select v-model="selectedDirectory" class="directory-select">
-        <option v-for="dir in directories" :key="dir" :value="dir">
+        <option v-if="directories.length === 0" value="" disabled>
+          请添加目录
+        </option>
+        <option 
+          v-for="dir in directories" 
+          :key="dir" 
+          :value="dir"
+        >
           {{ dir }}
         </option>
       </select>
     </div>
 
-    <!-- 下半部分：数据表格 -->
+    <!-- 表格容器添加滚动 -->
     <div class="track-table">
       <table>
         <thead>
@@ -79,7 +85,7 @@ interface Track {
 // 响应式数据
 const tracks = ref<Track[]>([])
 const directories = ref<string[]>([])
-const selectedDirectory = ref('')
+const selectedDirectory = ref<string>('') // 明确初始化空值
 const showImportModal = ref(false)
 const importProgress = ref(0)
 
@@ -160,10 +166,31 @@ const deleteTrack = async () => {
 </script>
 
 <style>
+/* 修正类名并添加滚动样式 */
+.track-table {
+  height: calc(98vh - 65px); /* 计算可用高度 */
+  overflow: auto; /* 垂直滚动 */
+  position: relative;
+}
+
+/* 保持表格头固定 */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  position: sticky;
+  top: 0;
+  background: #252526;
+  z-index: 1;
+}
+
 /* Sublime Text 暗色主题风格 */
 .container {
-  height: 100vh;
+  height: 97vh;
   background: #1e1e1e;
+  overflow: hidden; /* 新增 */
   color: #d4d4d4;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
 }
@@ -190,24 +217,10 @@ button:hover {
   background: #454545;
 }
 
-track-table {
-  overflow: auto;
-  height: calc(100vh - 60px);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
 th, td {
   padding: 8px 12px;
   text-align: left;
   border-bottom: 1px solid #333;
-}
-
-th {
-  background: #252526;
 }
 
 .placeholder td {
