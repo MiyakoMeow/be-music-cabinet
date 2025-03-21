@@ -1,160 +1,235 @@
-<script setup lang="ts">
-import { ref } from "vue";
-import { invoke } from "@tauri-apps/api/core";
-
-const greetMsg = ref("");
-const name = ref("");
-
-async function greet() {
-  // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-  greetMsg.value = await invoke("greet", { name: name.value });
-}
-</script>
-
 <template>
-  <main class="container">
-    <h1>Welcome to Tauri + Vue</h1>
-
-    <div class="row">
-      <a href="https://vitejs.dev" target="_blank">
-        <img src="/vite.svg" class="logo vite" alt="Vite logo" />
-      </a>
-      <a href="https://tauri.app" target="_blank">
-        <img src="/tauri.svg" class="logo tauri" alt="Tauri logo" />
-      </a>
-      <a href="https://vuejs.org/" target="_blank">
-        <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-      </a>
+  <!-- 主容器，处理拖放事件 -->
+  <div 
+    class="container"
+    @dragover.prevent="onDragover"
+    @drop.prevent="onDrop"
+  >
+    <!-- 上半部分：操作菜单 -->
+    <div class="menu-bar">
+      <div class="left-actions">
+        <!-- 操作按钮 -->
+        <button @click="addDirectory">
+          <Icon icon="mdi:folder-plus" /> 添加目录
+        </button>
+        <button @click="addArchive">
+          <Icon icon="mdi:folder-zip" /> 添加压缩包
+        </button>
+        <button @click="deleteTrack">
+          <Icon icon="mdi:trash-can" /> 删除
+        </button>
+      </div>
+      
+      <!-- 目录选择 -->
+      <select v-model="selectedDirectory" class="directory-select">
+        <option v-for="dir in directories" :key="dir" :value="dir">
+          {{ dir }}
+        </option>
+      </select>
     </div>
-    <p>Click on the Tauri, Vite, and Vue logos to learn more.</p>
 
-    <form class="row" @submit.prevent="greet">
-      <input id="greet-input" v-model="name" placeholder="Enter a name..." />
-      <button type="submit">Greet</button>
-    </form>
-    <p>{{ greetMsg }}</p>
-  </main>
+    <!-- 下半部分：数据表格 -->
+    <div class="track-table">
+      <table>
+        <thead>
+          <tr>
+            <th v-for="col in columns" :key="col">{{ col }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="tracks.length === 0" class="placeholder">
+            <td v-for="col in columns" :key="col">-</td>
+          </tr>
+          <tr v-else v-for="track in tracks" :key="track.id">
+            <td>{{ track.id }}</td>
+            <td>{{ track.title }}</td>
+            <td>{{ track.artist }}</td>
+            <td>{{ track.genre }}</td>
+            <td>{{ track.sha256.slice(0, 4) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 导入进度模态框 -->
+    <div v-if="showImportModal" class="import-modal">
+      <div class="modal-content">
+        <h3>正在导入目录...</h3>
+        <progress :value="importProgress" max="100"></progress>
+        <p>{{ importProgress }}% 已完成</p>
+      </div>
+    </div>
+  </div>
 </template>
 
-<style scoped>
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { invoke } from '@tauri-apps/api/core'
+import { Icon } from '@iconify/vue'
+
+// 类型定义
+interface Track {
+  id: number
+  title: string
+  artist: string
+  genre: string
+  sha256: string
 }
 
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #249b73);
+// 响应式数据
+const tracks = ref<Track[]>([])
+const directories = ref<string[]>([])
+const selectedDirectory = ref('')
+const showImportModal = ref(false)
+const importProgress = ref(0)
+
+// 表格列配置
+const columns = ['ID', '标题', '艺术家', '曲风', 'SHA256']
+
+// 初始化加载目录列表
+onMounted(async () => {
+  directories.value = await invoke('get_directories')
+  if (directories.value.length > 0) {
+    selectedDirectory.value = directories.value[0]
+  }
+})
+
+// 拖放处理
+const onDragover = (e: DragEvent) => {
+  e.dataTransfer!.dropEffect = 'copy'
 }
 
-</style>
+const onDrop = async (e: DragEvent) => {
+  const files = Array.from(e.dataTransfer?.files || [])
+  await invoke('handle_dropped_files', { files })
+  await refreshTracks()
+}
+
+// 添加目录功能
+const addDirectory = async () => {
+  showImportModal.value = true
+  try {
+    await invoke('add_directory', {
+      onProgress: (progress: number) => {
+        importProgress.value = progress
+      }
+    })
+  } finally {
+    showImportModal.value = false
+    await refreshTracks()
+  }
+}
+
+// 刷新曲目列表
+const refreshTracks = async () => {
+  tracks.value = await invoke('get_tracks', {
+    directory: selectedDirectory.value
+  })
+}
+
+// 添加压缩包功能
+const addArchive = async () => {
+  showImportModal.value = true
+  try {
+    await invoke('add_directory', {
+      onProgress: (progress: number) => {
+        importProgress.value = progress
+      }
+    })
+  } finally {
+    showImportModal.value = false
+    await refreshTracks()
+  }
+}
+
+// 删除曲目功能
+const deleteTrack = async () => {
+  showImportModal.value = true
+  try {
+    await invoke('add_directory', {
+      onProgress: (progress: number) => {
+        importProgress.value = progress
+      }
+    })
+  } finally {
+    showImportModal.value = false
+    await refreshTracks()
+  }
+}
+
+</script>
+
 <style>
-:root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
-
-  color: #0f0f0f;
-  background-color: #f6f6f6;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-}
-
+/* Sublime Text 暗色主题风格 */
 .container {
-  margin: 0;
-  padding-top: 10vh;
+  height: 100vh;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.menu-bar {
+  padding: 8px;
+  background: #2d2d2d;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: 0.75s;
-}
-
-.logo.tauri:hover {
-  filter: drop-shadow(0 0 2em #24c8db);
-}
-
-.row {
-  display: flex;
-  justify-content: center;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-
-a:hover {
-  color: #535bf2;
-}
-
-h1 {
-  text-align: center;
-}
-
-input,
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
-  transition: border-color 0.25s;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+  justify-content: space-between;
+  border-bottom: 1px solid #333;
 }
 
 button {
+  background: #3c3c3c;
+  color: #d4d4d4;
+  border: 1px solid #333;
+  padding: 6px 12px;
+  margin-right: 8px;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 button:hover {
-  border-color: #396cd8;
-}
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
+  background: #454545;
 }
 
-input,
-button {
-  outline: none;
+track-table {
+  overflow: auto;
+  height: calc(100vh - 60px);
 }
 
-#greet-input {
-  margin-right: 5px;
+table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f6f6f6;
-    background-color: #2f2f2f;
-  }
-
-  a:hover {
-    color: #24c8db;
-  }
-
-  input,
-  button {
-    color: #ffffff;
-    background-color: #0f0f0f98;
-  }
-  button:active {
-    background-color: #0f0f0f69;
-  }
+th, td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid #333;
 }
 
+th {
+  background: #252526;
+}
+
+.placeholder td {
+  color: #666;
+  font-style: italic;
+}
+
+.import-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: grid;
+  place-items: center;
+}
+
+.modal-content {
+  background: #252526;
+  padding: 2rem;
+  border-radius: 4px;
+  text-align: center;
+}
 </style>
