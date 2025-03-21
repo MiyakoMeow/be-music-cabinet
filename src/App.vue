@@ -1,7 +1,28 @@
 <template>
+  <!-- 自定义标题栏容器 -->
+  <div 
+    class="custom-titlebar"
+    :class="{ 'dark-mode': isDark }"
+  >
+    <!-- 可拖动区域 -->
+    <div class="draggable-area">
+      <span class="title">Be Music Cabinet</span>
+    </div>
+
+    <!-- 窗口控制按钮 -->
+    <div class="window-controls">
+      <button @click="minimizeWindow" title="最小化">
+        <Icon icon="mdi:minimize" />
+      </button>
+      <button @click="closeWindow" class="close-btn" title="关闭">
+        <Icon icon="mdi:close" />
+      </button>
+    </div>
+  </div>
   <!-- 主容器添加overflow-hidden防止窗口滚动 -->
   <div 
     class="container"
+    :class="{ 'dark-mode': isDark }"
     @dragover.prevent="onDragover"
     @drop.prevent="onDrop"
   >
@@ -70,8 +91,43 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { invoke } from '@tauri-apps/api/core'
 import { Icon } from '@iconify/vue'
+import { invoke } from '@tauri-apps/api/core'
+import { getCurrentWindow } from "@tauri-apps/api/window";
+
+// 暗色模式状态
+const isDark = ref(false)
+
+// 初始化监听暗色模式
+onMounted(async () => {
+  const darkMode = matchMedia('(prefers-color-scheme: dark)').matches
+  isDark.value = darkMode
+})
+
+// 窗口最小化
+const minimizeWindow = async () => {
+  try {
+    console.info("窗口最小化")
+    await getCurrentWindow().minimize()
+  } catch (error) {
+    console.error('最小化失败:', error)
+  }
+}
+
+// 关闭窗口
+const closeWindow = async () => {
+  try {
+    await getCurrentWindow().close()
+  } catch (error) {
+    console.error('关闭窗口失败:', error)
+  }
+}
+
+// 处理标题栏拖动
+// const handleDrag = (event: MouseEvent) => {
+//   // getCurrentWindow().startDragging(event).catch(console.error)
+//   getCurrentWindow().startDragging().catch(console.error)
+// }
 
 // 类型定义
 interface Track {
@@ -165,18 +221,76 @@ const deleteTrack = async () => {
 
 </script>
 
-<style>
-/* 修正类名并添加滚动样式 */
-.track-table {
-  height: calc(98vh - 65px); /* 计算可用高度 */
-  overflow: auto; /* 垂直滚动 */
-  position: relative;
+<style scoped>
+/* 自定义标题栏 */
+.custom-titlebar {
+  --titlebar-btn-hover: rgba(0, 0, 0, 0.1);
+  --titlebar-close-hover: #e81123;
+  height: 30px; /* 标题栏高度 */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f0f0f0;
+  user-select: none;
+  position: fixed; /* 固定定位 */
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999; /* 确保标题栏在最上层 */
 }
 
-/* 保持表格头固定 */
-table {
-  width: 100%;
-  border-collapse: collapse;
+/* 暗色模式通过父容器限定 */
+.custom-titlebar.dark-mode {
+  --titlebar-btn-hover: rgba(255, 255, 255, 0.1);
+  --titlebar-close-hover: #f1707a;
+  background: #2d2d2d;
+  color: white;
+}
+
+/* 所有子元素都通过父容器限定 */
+.custom-titlebar .draggable-area {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: 12px;
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+.custom-titlebar .title {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.custom-titlebar .window-controls {
+  display: flex;
+  height: 100%;
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+/* 按钮样式严格限定在标题栏内部 */
+.custom-titlebar button {
+  height: 100%;
+  width: 46px;
+  border: none;
+  background: transparent;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 悬停状态通过CSS变量控制 */
+.custom-titlebar button:hover {
+  background: var(--titlebar-btn-hover);
+}
+
+/* 关闭按钮特殊处理 */
+.custom-titlebar .close-btn:hover {
+  background: var(--titlebar-close-hover) !important;
+  color: white;
 }
 
 th {
@@ -188,7 +302,10 @@ th {
 
 /* Sublime Text 暗色主题风格 */
 .container {
-  height: 97vh;
+  height: calc(100vh - 40px); /* 计算高度，减去标题栏的高度 */
+  margin-top: 30px; /* 与标题栏的高度一致，确保容器在标题栏下方 */
+  width: 100%; /* 确保宽度占满整个视口 */
+  border: none;
   background: #1e1e1e;
   overflow: hidden; /* 新增 */
   color: #d4d4d4;
@@ -244,5 +361,18 @@ th, td {
   padding: 2rem;
   border-radius: 4px;
   text-align: center;
+}
+
+/* 修正类名并添加滚动样式 */
+.track-table {
+  height: calc(100vh - 30px); /* 计算可用高度 */
+  overflow: auto; /* 垂直滚动 */
+  position: relative;
+}
+
+/* 保持表格头固定 */
+.track-table table {
+  width: 100%;
+  border-collapse: none;
 }
 </style>

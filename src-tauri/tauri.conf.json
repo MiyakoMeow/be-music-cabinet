@@ -13,8 +13,12 @@
     "windows": [
       {
         "title": "be-music-cabinet",
-        "width": 800,
-        "height": 600
+        "width": 1280,
+        "height": 720,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": false,
+        "transparent": true
       }
     ],
     "security": {
