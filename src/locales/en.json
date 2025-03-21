@@ -1,0 +1,21 @@
+{
+  "columns": {
+    "id": "ID",
+    "title": "Title",
+    "artist": "Artist",
+    "genre": "Genre",
+    "sha256": "SHA256"
+  },
+  "buttons": {
+    "addDirectory": "Add Directory",
+    "addArchive": "Add Archive",
+    "delete": "Delete"
+  },
+  "directorySelector": {
+    "placeholder": "Please add a directory"
+  },
+  "importModal": {
+    "title": "Importing...",
+    "completed": "Completed"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "columns": {
+    "id": "编号",
+    "title": "标题",
+    "artist": "艺术家",
+    "genre": "曲风",
+    "sha256": "SHA256"
+  },
+  "buttons": {
+    "addDirectory": "Add Directory",
+    "addArchive": "Add Archive",
+    "delete": "Delete"
+  },
+  "directorySelector": {
+    "placeholder": "请添加目录"
+  },
+  "importModal": {
+    "title": "导入中...",
+    "completed": "导入完成"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "columns": {
+    "id": "ID",
+    "title": "제목",
+    "artist": "아티스트",
+    "genre": "장르",
+    "sha256": "SHA256"
+  },
+  "buttons": {
+    "addDirectory": "디렉토리 추가",
+    "addArchive": "압축파일 추가",
+    "delete": "삭제"
+  },
+  "directorySelector": {
+    "placeholder": "디렉토리를 추가해 주세요"
+  },
+  "importModal": {
+    "title": "가져오는 중...",
+    "completed": "완료됨"
+  }
+}

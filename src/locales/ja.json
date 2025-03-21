@@ -1,0 +1,21 @@
+{
+  "columns": {
+    "id": "ID",
+    "title": "タイトル",
+    "artist": "アーティスト",
+    "genre": "ジャンル",
+    "sha256": "SHA256"
+  },
+  "buttons": {
+    "addDirectory": "ディレクトリ追加",
+    "addArchive": "アーカイブ追加",
+    "delete": "削除"
+  },
+  "directorySelector": {
+    "placeholder": "ディレクトリを追加してください"
+  },
+  "importModal": {
+    "title": "インポート中...",
+    "completed": "完了"
+  }
+}
